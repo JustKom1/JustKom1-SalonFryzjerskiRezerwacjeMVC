@@ -1,0 +1,88 @@
+﻿@model Rezerwacje.Models.ViewModels.ReservationCreateVm
+@{
+    ViewData["Title"] = "Utwórz rezerwację";
+}
+
+<section class="panel">
+    <h2 class="section-title">Utwórz rezerwację</h2>
+
+    <form id="reservationForm" asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="StartTime" id="StartTime" />
+
+        <div class="form-row">
+            <label class="form-label">Usługa</label>
+            <select class="form-select" asp-for="ServiceId" asp-items="ViewBag.ServiceList" id="ServiceId"></select>
+        </div>
+        <br/>
+        <div class="form-row">
+            <label class="form-label">Dzień</label>
+            <br/>
+            <input class="form-input" asp-for="Date" type="date" id="Date" />
+        </div>
+        <br/>
+        <div class="form-row">
+            <label class="form-label">Godzina</label>
+            <div id="times" class="times-grid"></div>
+            <div class="form-hint">Kliknij godzinę, aby wybrać termin.</div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" id="submitBtn" disabled>Zarezerwuj</button>
+        <a class="btn btn-secondary" asp-controller="Services" asp-action="Index" style="margin-left:8px;">Wróć</a>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+          const service = document.getElementById('ServiceId');
+          const date = document.getElementById('Date');
+          const times = document.getElementById('times');
+          const startTime = document.getElementById('StartTime');
+          const submitBtn = document.getElementById('submitBtn');
+
+          function setSubmitEnabled() {
+            submitBtn.disabled = !startTime.value;
+          }
+
+          async function loadTimes() {
+            times.innerHTML = "";
+            startTime.value = "";
+            setSubmitEnabled();
+
+            if (!service.value || !date.value) return;
+
+            const url = `/Reservations/AvailableTimes?serviceId=${service.value}&date=${date.value}`;
+            const resp = await fetch(url);
+            const list = await resp.json();
+
+            if (!list || list.length === 0) {
+              times.innerHTML = `<div class="form-hint">Brak dostępnych godzin.</div>`;
+              return;
+            }
+
+            list.forEach(t => {
+              const btn = document.createElement('button');
+              btn.type = "button";
+              btn.className = "time-btn";
+              btn.textContent = t;
+
+              btn.addEventListener('click', () => {
+                document.querySelectorAll('.time-btn').forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+                startTime.value = t;
+                setSubmitEnabled();
+              });
+
+              times.appendChild(btn);
+            });
+          }
+
+          service.addEventListener('change', loadTimes);
+          date.addEventListener('change', loadTimes);
+
+          loadTimes();
+        })();
+    </script>
+}
