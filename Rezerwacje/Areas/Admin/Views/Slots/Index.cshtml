@@ -1,0 +1,52 @@
+﻿@using Rezerwacje.Models;
+@using Rezerwacje.Helpers;
+
+@model IEnumerable<Slot>
+
+@{
+    ViewData["Title"] = "Terminy";
+}
+
+<main class="container">
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="section-title">Podgląd zajętych terminów</h2>
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (!Model.Any())
+        {
+            <p>Brak terminów.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Usługa</th>
+                        <th>Czas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>@s.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(s.Service?.Name ?? "-")</td>
+                            <td>@TimeHelper.MinutesToText(s.Service?.DurationMinutes ?? 0)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+</main>

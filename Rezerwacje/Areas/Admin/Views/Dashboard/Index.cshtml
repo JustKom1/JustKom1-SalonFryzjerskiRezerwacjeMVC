@@ -1,0 +1,94 @@
+﻿@using Rezerwacje.Helpers;
+
+@model Rezerwacje.Areas.Admin.Models.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Panel admina";
+}
+
+<section class="panel">
+    <h2 class="section-title">Panel administratora</h2>
+    <p class="form-hint">Podgląd usług, terminów oraz statusów rezerwacji.</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-title">Usługi</div>
+            <div class="stat-value">@Model.ServicesCount</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Terminy</div>
+            <div class="stat-value">@Model.SlotsCount</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Oczekujące</div>
+            <div class="stat-value">@Model.PendingCount</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Zatwierdzone</div>
+            <div class="stat-value">@Model.ApprovedCount</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Odrzucone</div>
+            <div class="stat-value">@Model.RejectedCount</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Anulowane</div>
+            <div class="stat-value">@Model.CancelledCount</div>
+        </div>
+    </div>
+
+    <div class="actions" style="margin-top:16px;">
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="Reservations" asp-action="Index">
+            Zatwierdzaj rezerwacje
+        </a>
+        <a class="btn btn-secondary" asp-area="Admin" asp-controller="Services" asp-action="Index">
+            Zarządzaj usługami
+        </a>
+        <a class="btn btn-secondary" asp-area="Admin" asp-controller="Slots" asp-action="Index">
+            Zobacz zajęte terminy
+        </a>
+        <a class="btn btn-secondary" asp-area="Admin" asp-controller="Schedule" asp-action="Index">
+            Grafik salonu
+        </a>
+
+    </div>
+</section>
+
+<section class="panel">
+    <h2 class="section-title">Ostatnie rezerwacje do zatwierdzenia</h2>
+
+    @if (Model.LatestPending.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Użytkownik</th>
+                    <th>Usługa</th>
+                    <th>Termin</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var r in Model.LatestPending)
+                {
+                    <tr>
+                        <td>@(r.UserEmail ?? "-")</td>
+                        <td>@(r.ServiceName ?? "brak")</td>
+                        <td>@(r.Date?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td><span class="badge badge-pending">@StatusHelper.Badge(r.Status)</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Brak rezerwacji oczekujących.</p>
+    }
+</section>

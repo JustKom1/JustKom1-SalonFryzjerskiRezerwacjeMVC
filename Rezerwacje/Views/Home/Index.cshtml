@@ -1,0 +1,27 @@
+﻿@{
+    ViewData["Title"] = "Strona główna";
+}
+
+<header class="page-header">
+    <h1 class="page-title">Salon Fryzjerski Sieniewski</h1>
+</header>
+
+<main class="page-main">
+    <section class="panel">
+        <h2 class="section-title">Witamy!</h2>
+        <p>Umów wizytę w naszym salonie fryzjerskim – wybierz usługę i dogodny termin.</p>
+
+        <div class="actions">
+            <a class="btn btn-primary" asp-controller="Services" asp-action="Index">Zobacz ofertę</a>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a class="btn btn-secondary" asp-controller="Reservations" asp-action="Index">Moje rezerwacje</a>
+            }
+            else
+            {
+                <a class="btn btn-secondary" asp-area="Identity" asp-page="/Account/Login">Zaloguj się</a>
+            }
+        </div>
+    </section>
+</main>

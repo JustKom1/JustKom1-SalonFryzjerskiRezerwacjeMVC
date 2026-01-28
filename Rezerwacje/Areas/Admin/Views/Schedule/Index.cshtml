@@ -1,0 +1,97 @@
+﻿@using Rezerwacje.Models
+@model IEnumerable<SalonDayOverride>
+
+@{
+    ViewData["Title"] = "Grafik salonu";
+}
+
+<main class="container">
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="section-title">Grafik salonu – dni zamknięte / skrócone godziny</h2>
+            <p class="form-hint">Dodaj wyjątek dla konkretnej daty (zamknięte lub inne godziny).</p>
+        </header>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        <form asp-area="Admin" asp-controller="Schedule" asp-action="Create" method="post" class="form" style="margin-top:12px;">
+            @Html.AntiForgeryToken()
+
+            <label class="form-label" for="Date">Data</label>
+            <input class="form-input" type="date" name="Date" required />
+
+            <label class="form-label" style="margin-top:8px;">
+                <input type="checkbox" name="IsClosed" value="true" />
+                Dzień zamknięty
+            </label>
+
+            <div style="display:flex; gap:12px; margin-top:8px;">
+                <div style="flex:1;">
+                    <label class="form-label" for="OpenTime">Otwarcie (opcjonalnie)</label>
+                    <input class="form-input" type="time" name="OpenTime" />
+                </div>
+                <div style="flex:1;">
+                    <label class="form-label" for="CloseTime">Zamknięcie (opcjonalnie)</label>
+                    <input class="form-input" type="time" name="CloseTime" />
+                </div>
+            </div>
+
+            <label class="form-label" for="Note" style="margin-top:8px;">Notatka (opcjonalnie)</label>
+            <input class="form-input" type="text" name="Note" placeholder="np. szkolenie / święto" />
+
+            <button class="btn btn-primary" type="submit" style="margin-top:10px;">Zapisz</button>
+        </form>
+
+        <hr style="margin:16px 0;" />
+
+        @if (!Model.Any())
+        {
+            <p>Brak wyjątków grafiku.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Zamknięte</th>
+                        <th>Godziny</th>
+                        <th>Notatka</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var x in Model)
+                    {
+                        <tr>
+                            <td>@x.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@(x.IsClosed ? "Tak" : "Nie")</td>
+                            <td>
+                                @if (x.IsClosed)
+                                {
+                                    @("-")
+                                }
+                                else
+                                {
+                                    var open = x.OpenTime?.ToString(@"hh\:mm") ?? "domyślnie";
+                                    var close = x.CloseTime?.ToString(@"hh\:mm") ?? "domyślnie";
+                                    @($"{open} – {close}")
+                                }
+                            </td>
+                            <td>@(x.Note ?? "-")</td>
+                            <td>
+                                <form asp-area="Admin" asp-controller="Schedule" asp-action="Delete" asp-route-id="@x.Id" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-danger" type="submit">Usuń</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </section>
+</main>
