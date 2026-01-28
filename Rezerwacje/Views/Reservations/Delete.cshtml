@@ -1,0 +1,30 @@
+﻿@using Rezerwacje.Helpers;
+
+@model Reservation
+
+@{
+    ViewData["Title"] = "Anuluj rezerwację";
+}
+
+<main class="container">
+    <section class="panel">
+        <header class="panel-header">
+            <h2 class="section-title">Anulowanie rezerwacji</h2>
+            <p class="form-hint">Czy na pewno chcesz anulować tę rezerwację?</p>
+        </header>
+
+        <div class="details">
+            <p><strong>Usługa:</strong> @(Model.Slot?.Service?.Name ?? "-")</p>
+            <p><strong>Termin:</strong> @(Model.Slot?.Date.ToString("yyyy-MM-dd HH:mm") ?? "-")</p>
+            <p><strong>Status:</strong> @StatusHelper.Badge(Model.Status)</p>
+        </div>
+
+        <form asp-action="Delete" method="post" style="margin-top:16px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <button class="btn btn-danger" type="submit">Anuluj rezerwację</button>
+            <a class="btn btn-secondary" asp-action="Index" style="margin-left:8px;">Wróć</a>
+        </form>
+    </section>
+</main>

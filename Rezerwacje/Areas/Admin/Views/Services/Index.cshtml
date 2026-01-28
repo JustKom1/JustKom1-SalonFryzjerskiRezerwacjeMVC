@@ -1,0 +1,46 @@
+﻿@using Rezerwacje.Helpers;
+
+@model IEnumerable<Service>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Lista usług</h1>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">Dodaj nową usługę</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nazwa</th>
+            <th>Opis</th>
+            <th>Cena</th>
+            <th>Czas trwania</th>
+            <th>Akcje</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Price) zł
+            </td>
+            <td>
+                @TimeHelper.MinutesToText(item.DurationMinutes)
+            </td>
+            <td>
+                <a class="btn btn-secondary" asp-action="Edit" asp-route-id="@item.Id">Edytuj</a>
+                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id" style="margin-left:8px;">Usuń</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
