@@ -42,7 +42,7 @@ namespace Rezerwacje.Controllers
             return View(reservations);
         }
 
-        // GET: Reservations/Create?serviceId=1
+        // GET: Reservations/Create?serviceId
         public async Task<IActionResult> Create(int? serviceId)
         {
             await RebuildServiceList(serviceId);
@@ -56,7 +56,7 @@ namespace Rezerwacje.Controllers
             return View(vm);
         }
 
-        // GET: Reservations/AvailableTimes?serviceId=1&date=2026-01-27
+        // GET: Reservations/AvailableTimes
         [HttpGet]
         public async Task<IActionResult> AvailableTimes(int serviceId, DateTime date)
         {
@@ -92,7 +92,7 @@ namespace Rezerwacje.Controllers
 
             var start = vm.Date.Date.Add(time);
 
-            // przelicz dostępność jeszcze raz (ochrona przed "wyścigiem")
+            // przelicza dostępność jeszcze raz
             var available = await ComputeAvailableTimes(vm.ServiceId, vm.Date, excludeReservationId: null);
             if (!available.Contains(vm.StartTime))
             {
@@ -101,7 +101,7 @@ namespace Rezerwacje.Controllers
                 return View(vm);
             }
 
-            // Tworzymy Slot dopiero przy rezerwacji
+            // Tworzy Slot dopiero przy rezerwacji
             var slot = new Slot
             {
                 ServiceId = vm.ServiceId,
@@ -153,7 +153,7 @@ namespace Rezerwacje.Controllers
             return View(vm);
         }
 
-        // GET: Reservations/AvailableTimesForEdit?id=5&serviceId=1&date=2026-01-27
+        // GET: Reservations/AvailableTimesForEdit?id&serviceId&date
         [HttpGet]
         public async Task<IActionResult> AvailableTimesForEdit(int id, int serviceId, DateTime date)
         {
@@ -206,12 +206,12 @@ namespace Rezerwacje.Controllers
                 return View(vm);
             }
 
-            // Aktualizujemy istniejący slot (nie tworzymy nowego)
+            // Aktualizuje istniejący slot
             reservation.Slot.ServiceId = vm.ServiceId;
             reservation.Slot.Date = start;
             reservation.Slot.IsBooked = true;
 
-            // jeśli było Approved, cofamy do Pending po zmianie terminu
+            // jeśli było Approved, cofa do Pending po zmianie terminu
             if (reservation.Status == "Approved")
                 reservation.Status = "Pending";
 
@@ -257,7 +257,6 @@ namespace Rezerwacje.Controllers
             if (reservation.UserId != userId && !User.IsInRole("Admin"))
                 return Forbid();
 
-            // U Ciebie: usuwasz sloty razem z rezerwacją (OK dla Twojego modelu)
             if (reservation.Slot != null)
                 _context.Slots.Remove(reservation.Slot);
 
@@ -269,7 +268,7 @@ namespace Rezerwacje.Controllers
 
         // ---------------- helpers ----------------
 
-        // DOMYŚLNE godziny jeśli nie ma wyjątku
+        // domyślnie godziny jeśli nie ma wyjątku
         private static readonly TimeSpan DefaultOpen = new TimeSpan(10, 0, 0);
         private static readonly TimeSpan DefaultClose = new TimeSpan(18, 0, 0);
 
@@ -305,7 +304,7 @@ namespace Rezerwacje.Controllers
 
             if (date.Date < DateTime.Today) return new List<string>();
 
-            // NOWE: okno otwarcia z grafiku
+            // okno otwarcia z grafiku
             var (isClosed, open, close) = await GetOpeningWindow(date);
             if (isClosed) return new List<string>();
 
@@ -315,7 +314,7 @@ namespace Rezerwacje.Controllers
             var newBlockMinutes = service.DurationMinutes + BufferMinutes;
             if (newBlockMinutes <= 0) return new List<string>();
 
-            // Busy: rezerwacje w tym dniu (Pending/Approved) + opcjonalnie pomiń aktualnie edytowaną
+            // rezerwacje w tym dniu (Pending/Approved)
             var query = _context.Reservations
                 .Include(r => r.Slot)
                 .Where(r =>

@@ -98,9 +98,9 @@ a {
     outline: none;
 }
 
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
+.form-input:focus, .form-select:focus, .form-textarea:focus {
         border-color: var(--primary);
-    }
+}
 
 .form-error {
     color: var(--danger);
@@ -217,7 +217,6 @@ a {
     flex-wrap: wrap;
 }
 
-/*#region Admin Dashboard*/
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -243,9 +242,6 @@ a {
     font-size: 28px;
     font-weight: bold;
 }
-/*#endregion*/
-
-/* Disabled submit button look */
 button:disabled,
 .btn.btn-disabled {
     opacity: 0.55;

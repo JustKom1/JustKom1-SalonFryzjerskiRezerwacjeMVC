@@ -132,7 +132,7 @@ namespace Rezerwacje.Areas.Identity.Pages.Account
                         values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
                         protocol: Request.Scheme);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                    await _emailSender.SendEmailAsync(Input.Email, "Potwierdż swój email",
                         $"Proszę potwierdzić tworzenie konta <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>klikając tutaj</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)

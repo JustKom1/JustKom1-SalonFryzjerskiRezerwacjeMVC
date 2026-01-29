@@ -5,12 +5,11 @@
     ViewData["Title"] = "Grafik salonu";
 }
 
-<main class="container">
     <section class="panel">
-        <header class="panel-header">
+        <div class="panel-header">
             <h2 class="section-title">Grafik salonu – dni zamknięte / skrócone godziny</h2>
             <p class="form-hint">Dodaj wyjątek dla konkretnej daty (zamknięte lub inne godziny).</p>
-        </header>
+        </div>
 
         @if (TempData["Success"] != null)
         {
@@ -94,4 +93,3 @@
             </table>
         }
     </section>
-</main>

@@ -64,7 +64,7 @@ namespace Rezerwacje.Areas.Identity.Pages.Account
             var user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
+                ModelState.AddModelError(string.Empty, "Emai weryfikacyjny został wysłany. Proszę sprawdzić skrzynkę odbiorczą.");
                 return Page();
             }
 
@@ -78,10 +78,10 @@ namespace Rezerwacje.Areas.Identity.Pages.Account
                 protocol: Request.Scheme);
             await _emailSender.SendEmailAsync(
                 Input.Email,
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                "Potwierdź swój email.",
+                $"W celu potwierdzenia adresu email <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>kliknij tutaj</a>.");
 
-            ModelState.AddModelError(string.Empty, "Verification email sent. Please check your email.");
+            ModelState.AddModelError(string.Empty, "Emai weryfikacyjny został wysłany. Proszę sprawdzić skrzynkę odbiorczą.");
             return Page();
         }
     }

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Rezerwacje.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
@@ -35,23 +35,19 @@
                     </ul>
                      @if (User.IsInRole("Admin"))
                      {
-                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"><button type="button" class="btn btn-primary">Panel Admina</button></a>
+                        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Panel Admina</a>
                      }
                     <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <main role="main" class="container mt-4">
+        @RenderBody()
+    </main>
 
-    <footer class="border-top footer text-muted">
-        <div class="container text-center">
-            &copy; 2026 - Salon Fryzjerski Sieniewski
-        </div>
+    <footer class="border-top footer mt-auto py-3 d-flex justify-content-center align-bottom">
+        <span class="text-muted">&copy; 2026 - Salon Fryzjerski</span>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
