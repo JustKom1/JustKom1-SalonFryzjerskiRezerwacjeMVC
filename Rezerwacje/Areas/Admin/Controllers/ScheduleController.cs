@@ -20,6 +20,9 @@ namespace Rezerwacje.Areas.Admin.Controllers
         // GET: /Admin/Schedule
         public async Task<IActionResult> Index()
         {
+            TempData.Remove("Success");
+            TempData.Remove("Error");
+
             var list = await _context.SalonDayOverrides
                 .OrderBy(o => o.Date)
                 .ToListAsync();

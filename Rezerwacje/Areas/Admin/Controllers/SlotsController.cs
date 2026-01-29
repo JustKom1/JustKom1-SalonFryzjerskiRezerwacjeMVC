@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Rezerwacje.Areas.Admin.Models;
 using Rezerwacje.Data;
 
 namespace Rezerwacje.Areas.Admin.Controllers
@@ -10,80 +12,53 @@ namespace Rezerwacje.Areas.Admin.Controllers
     public class SlotsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public SlotsController(ApplicationDbContext context)
+        public SlotsController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
-        }
-
-        // POST: /Admin/Slots/Generate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Generate(int days = 14)
-        {
-            var services = await _context.Services.ToListAsync();
-            if (!services.Any())
-            {
-                TempData["Error"] = "Brak usług. Najpierw dodaj usługi.";
-                return RedirectToAction("Index");
-            }
-
-            var open = new TimeSpan(10, 0, 0);
-            var close = new TimeSpan(18, 0, 0);
-
-            var startDate = DateTime.Today;
-
-            foreach (var service in services)
-            {
-                var duration = service.DurationMinutes;
-                if (duration <= 0) continue;
-
-                var block = duration + 15;
-
-                for (int d = 0; d < days; d++)
-                {
-                    var day = startDate.AddDays(d);
-
-                    // jeśli chcesz pominąć niedziele:
-                    // if (day.DayOfWeek == DayOfWeek.Sunday) continue;
-
-                    var current = day.Date + open;
-
-                    while (current.TimeOfDay.Add(TimeSpan.FromMinutes(block)) <= close)
-                    {
-                        // nie duplikuj tego samego terminu dla tej usługi
-                        bool exists = await _context.Slots.AnyAsync(s =>
-                            s.ServiceId == service.Id && s.Date == current);
-
-                        if (!exists)
-                        {
-                            _context.Slots.Add(new Slot
-                            {
-                                ServiceId = service.Id,
-                                Date = current,
-                                IsBooked = false
-                            });
-                        }
-
-                        current = current.AddMinutes(block);
-                    }
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            TempData["Success"] = $"Wygenerowano terminy na {days} dni (10:00–18:00, +15 min przerwy).";
-            return RedirectToAction("Index");
+            _userManager = userManager;
         }
 
         // GET: /Admin/Slots
         public async Task<IActionResult> Index()
         {
-            var slots = await _context.Slots
-                .Include(s => s.Service)
-                .OrderBy(s => s.Date)
+            TempData.Remove("Success");
+            TempData.Remove("Error");
+
+            var reservations = await _context.Reservations
+                .AsNoTracking()
+                .Include(r => r.Slot).ThenInclude(s => s.Service)
+                .Where(r => r.Slot != null && (r.Status == "Pending" || r.Status == "Approved"))
+                .OrderBy(r => r.Slot!.Date)
                 .ToListAsync();
 
-            return View(slots);
+            var userIds = reservations
+                .Select(r => r.UserId)
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            var users = await _userManager.Users
+                .Where(u => userIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.Email })
+                .ToListAsync();
+
+            var emailById = users.ToDictionary(x => x.Id, x => x.Email);
+
+            var vm = reservations.Select(r => new AdminBookedSlotRowVm
+            {
+                ReservationId = r.Id,
+                Date = r.Slot!.Date,
+                ServiceName = r.Slot!.Service?.Name,
+                DurationMinutes = r.Slot!.Service?.DurationMinutes ?? 0,
+                Status = r.Status,
+                UserEmail = (r.UserId != null && emailById.ContainsKey(r.UserId))
+                    ? emailById[r.UserId]
+                    : r.UserId
+            }).ToList();
+
+            return View(vm);
         }
     }
 }

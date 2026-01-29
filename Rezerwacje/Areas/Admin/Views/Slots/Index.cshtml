@@ -1,7 +1,5 @@
-﻿@using Rezerwacje.Models;
-@using Rezerwacje.Helpers;
-
-@model IEnumerable<Slot>
+﻿@using Rezerwacje.Helpers
+@model IEnumerable<Rezerwacje.Areas.Admin.Models.AdminBookedSlotRowVm>
 
 @{
     ViewData["Title"] = "Terminy";
@@ -10,7 +8,7 @@
 <main class="container">
     <section class="panel">
         <header class="panel-header">
-            <h2 class="section-title">Podgląd zajętych terminów</h2>
+            <h2 class="section-title">Zarządzaj wizytami</h2>
         </header>
 
         @if (TempData["Success"] != null)
@@ -24,7 +22,7 @@
 
         @if (!Model.Any())
         {
-            <p>Brak terminów.</p>
+            <p>Brak wizyt.</p>
         }
         else
         {
@@ -32,17 +30,33 @@
                 <thead>
                     <tr>
                         <th>Data</th>
+                        <th>Użytkownik</th>
                         <th>Usługa</th>
                         <th>Czas</th>
+                        <th>Status</th>
+                        <th>Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var s in Model)
+                    @foreach (var row in Model)
                     {
                         <tr>
-                            <td>@s.Date.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@(s.Service?.Name ?? "-")</td>
-                            <td>@TimeHelper.MinutesToText(s.Service?.DurationMinutes ?? 0)</td>
+                            <td>@row.Date.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(row.UserEmail ?? "-")</td>
+                            <td>@(row.ServiceName ?? "-")</td>
+                            <td>@TimeHelper.MinutesToText(row.DurationMinutes)</td>
+                            <td>@StatusHelper.Badge(row.Status)</td>
+                            <td>
+                                <form asp-area="Admin"
+                                      asp-controller="Reservations"
+                                      asp-action="Cancel"
+                                      asp-route-id="@row.ReservationId"
+                                      method="post"
+                                      style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-danger" type="submit">Odwołaj</button>
+                                </form>
+                            </td>
                         </tr>
                     }
                 </tbody>

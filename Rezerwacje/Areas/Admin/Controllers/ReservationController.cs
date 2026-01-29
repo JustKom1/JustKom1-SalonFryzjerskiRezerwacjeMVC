@@ -23,6 +23,9 @@ namespace Rezerwacje.Areas.Admin.Controllers
         // GET: /Admin/Reservations
         public async Task<IActionResult> Index()
         {
+            TempData.Remove("Success");
+            TempData.Remove("Error");
+
             var pending = await _context.Reservations
                 .AsNoTracking()
                 .Include(r => r.Slot).ThenInclude(s => s.Service)
@@ -30,8 +33,12 @@ namespace Rezerwacje.Areas.Admin.Controllers
                 .OrderByDescending(r => r.Id)
                 .ToListAsync();
 
-            // pobierz maile dla UserId (bez nawigacji AppUser)
-            var userIds = pending.Select(r => r.UserId).Where(x => x != null).Distinct().ToList();
+            var userIds = pending
+                .Select(r => r.UserId)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .ToList();
+
             var users = await _userManager.Users
                 .Where(u => userIds.Contains(u.Id))
                 .Select(u => new { u.Id, u.Email })
@@ -51,32 +58,93 @@ namespace Rezerwacje.Areas.Admin.Controllers
             return View(vm);
         }
 
+        // POST: /Admin/Reservations/Approve/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int id)
         {
-            var r = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
-            if (r == null) return NotFound();
+            var reservation = await _context.Reservations
+                .Include(r => r.Slot)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            r.Status = "Approved";
+            if (reservation == null) return NotFound();
+
+            if (reservation.Status != "Pending")
+            {
+                TempData["Error"] = "Ta rezerwacja nie jest już oczekująca.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            reservation.Status = "Approved";
+
+            if (reservation.Slot != null)
+                reservation.Slot.IsBooked = true;
+
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Rezerwacja została zatwierdzona.";
             return RedirectToAction(nameof(Index));
         }
 
+        // POST: /Admin/Reservations/Reject/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id)
         {
-            var r = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
-            if (r == null) return NotFound();
+            var reservation = await _context.Reservations
+                .Include(r => r.Slot)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
-            r.Status = "Rejected";
+            if (reservation == null) return NotFound();
+
+            if (reservation.Status != "Pending")
+            {
+                TempData["Error"] = "Ta rezerwacja nie jest już oczekująca.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            reservation.Status = "Rejected";
+
+            if (reservation.Slot != null)
+            {
+                reservation.Slot.IsBooked = false;
+            }
+
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Rezerwacja została odrzucona.";
+            TempData["Success"] = "Rezerwacja została odrzucona, termin zwolniony.";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var reservation = await _context.Reservations
+                .Include(r => r.Slot)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (reservation == null) return NotFound();
+
+            if (reservation.Status != "Pending" && reservation.Status != "Approved")
+            {
+                TempData["Error"] = "Tę rezerwację nie można już odwołać.";
+                return RedirectToAction("Index", "Slots", new { area = "Admin" });
+            }
+
+            reservation.Status = "Cancelled";
+
+            if (reservation.Slot != null)
+            {
+                reservation.Slot.IsBooked = false;
+
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Wizyta została odwołana, termin zwolniony.";
+            return RedirectToAction("Index", "Slots", new { area = "Admin" });
+        }
+
     }
 }

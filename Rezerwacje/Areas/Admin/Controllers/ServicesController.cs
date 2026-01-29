@@ -24,6 +24,9 @@ namespace Rezerwacje.Areas.Admin.Controllers
         // GET: Admin/Services
         public async Task<IActionResult> Index()
         {
+            TempData.Remove("Success");
+            TempData.Remove("Error");
+
             return View(await _context.Services.ToListAsync());
         }
 

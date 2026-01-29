@@ -22,6 +22,8 @@ namespace Rezerwacje.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
+            TempData.Remove("Success");
+            TempData.Remove("Error");
             var vm = new AdminDashboardViewModel
             {
                 ServicesCount = await _context.Services.AsNoTracking().CountAsync(),
@@ -33,7 +35,7 @@ namespace Rezerwacje.Areas.Admin.Controllers
                 CancelledCount = await _context.Reservations.AsNoTracking().CountAsync(r => r.Status == "Cancelled"),
             };
 
-            // pobierz ostatnie Pending (bez Include(User))
+            // pobierz ostatnie Pending
             var pending = await _context.Reservations
                 .AsNoTracking()
                 .Include(r => r.Slot).ThenInclude(s => s.Service)
@@ -42,7 +44,7 @@ namespace Rezerwacje.Areas.Admin.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // mapowanie userId -> email
+            // mapowanie userId email
             var userIds = pending.Select(r => r.UserId).Where(x => x != null).Distinct().ToList();
             var users = await _userManager.Users
                 .Where(u => userIds.Contains(u.Id))
